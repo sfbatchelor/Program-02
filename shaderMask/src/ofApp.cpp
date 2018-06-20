@@ -16,7 +16,9 @@ void ofApp::setup() {
 		if (file.getExtension() == "jpg")
 		{
 			m_imageNames.push_back(file.getFileName());
-			m_images[i].load(file.getFileName());
+			//m_images[i].load(file.getFileName());
+			m_images[i].allocate(ofGetWidth()*2.5, ofGetHeight()*2.5, OF_IMAGE_COLOR); // ballpark the image res as we could only determine this by doing a byte read of the image, which this threaded approach doesn't do
+			m_imageLoader.loadFromDisk(m_images[i], file.getFileName());
 			i++;
 		}
 	}
@@ -32,7 +34,8 @@ void ofApp::setup() {
 	m_hideGUI = false;
 
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
-	m_plane.mapTexCoordsFromTexture(m_images[m_currentImage].getTexture());
+	m_currentImageIndex = 0;
+	m_plane.mapTexCoordsFromTexture(m_images[m_currentImageIndex].getTexture());
 }
 
 //--------------------------------------------------------------
@@ -43,7 +46,7 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 
-	m_images[m_currentImage].getTexture().bind();
+	m_images[m_currentImageIndex].getTexture().bind();
 	m_shader.begin();
 	m_shader.setUniform1f("uTime", ofGetElapsedTimef());
 
@@ -52,7 +55,7 @@ void ofApp::draw() {
 	m_plane.draw();
 	ofPopMatrix();
 	m_shader.end();
-	m_images[m_currentImage].getTexture().unbind();
+	m_images[m_currentImageIndex].getTexture().unbind();
 
 	if (!m_hideGUI)
 		m_gui.draw();
@@ -68,19 +71,21 @@ void ofApp::exit() {
 void ofApp::keyPressed(int key) {
 
 	if (key == 'a' || key == 's')
-		m_currentImage--;
+		m_currentImageIndex--;
 	else if (key == 'd' || key == 'w')
-		m_currentImage++;
+		m_currentImageIndex++;
 	else if (key == 'h')
 		m_hideGUI = !m_hideGUI;
 
-	if (m_currentImage >= (int)m_imageNames.size())
-		m_currentImage = 0;
-	else if (m_currentImage < 0)
-		m_currentImage = m_imageNames.size() - 1;
+	if (m_currentImageIndex >= (int)m_imageNames.size())
+		m_currentImageIndex = 0;
+	else if (m_currentImageIndex < 0)
+		m_currentImageIndex = m_imageNames.size() - 1;
 
-	if (m_currentImage < m_imageNames.size() && m_currentImage >= 0)
-		m_currentImageLabel = m_imageNames[m_currentImage];
+	if (m_currentImageIndex < m_imageNames.size() && m_currentImageIndex >= 0)
+	{
+		m_currentImageLabel = m_imageNames[m_currentImageIndex];
+	}
 
 
 }

@@ -29,7 +29,7 @@ public:
 	vector<ofImage> m_images;
 	vector<string> m_imageNames;
 	ofDirectory m_dataDir;
-	int m_currentImage;
+	int m_currentImageIndex;
 
 	ofxPanel m_gui;
 	ofParameter<string> m_currentImageLabel;
