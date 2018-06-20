@@ -1,9 +1,10 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxThreadedImageLoader.h"
 #include "ofxGui.h"
 #include "utils\ofFileUtils.h"
+
+#include "imageDirViewer.h"
 
 class ofApp : public ofBaseApp {
 
@@ -25,11 +26,7 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	ofxThreadedImageLoader m_imageLoader;
-	vector<ofImage> m_images;
-	vector<string> m_imageNames;
-	ofDirectory m_dataDir;
-	int m_currentImageIndex;
+	ImageDirViewer m_imageDir;
 
 	ofxPanel m_gui;
 	ofParameter<string> m_currentImageLabel;
