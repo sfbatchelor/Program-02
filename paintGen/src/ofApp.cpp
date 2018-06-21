@@ -24,8 +24,9 @@ void ofApp::setup() {
 	m_shaderUniforms.add(m_attractor3Force.set("attr3_force", 1200, 0, 5000));
 	m_gui.add(m_shaderUniforms);
 	m_gui.add(m_fps.set("fps", 60, 0, 60));
-	m_gui.add(m_dirAsColor.set("dir as color", false));
+	m_gui.add(m_dirAsColor.set("Colour", false));
 	m_dirAsColor.addListener(this, &ofApp::dirAsColorChanged);
+	m_dirAsColor = true;
 
 	m_pauseAndPlaySim.addListener(this, &ofApp::pauseAndPlayChanged);
 	m_resetSim.addListener(this, &ofApp::resetSim);
@@ -38,12 +39,12 @@ void ofApp::setup() {
 	m_hideGUI = false;
 
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
-	m_plane.mapTexCoordsFromTexture(m_imageDir.getImageTexture());
+	//m_plane.mapTexCoordsFromTexture(m_imageDir.getImageTexture());
 
 	m_compute.setupShaderFromFile(GL_COMPUTE_SHADER, "compute1.glsl");
 	m_compute.linkProgram();
 	m_cam.setFarClip(ofGetWidth() * 10);
-	m_particles.resize(1024 * 8);
+	m_particles.resize(32 * 32);
 	int i = 0;
 	for (auto & p : m_particles) {
 		p.pos.x = ofRandom(-ofGetWidth()*0.5, ofGetWidth()*0.5);
@@ -58,8 +59,6 @@ void ofApp::setup() {
 
 	m_vbo.setVertexBuffer(m_particleBuffer, 4, sizeof(Particle));
 	m_vbo.setColorBuffer(m_particleBuffer, sizeof(Particle), sizeof(ofVec4f) * 2);
-	m_vbo.disableColors();
-	m_dirAsColor = false;
 
 	ofBackground(0);
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
@@ -68,6 +67,7 @@ void ofApp::setup() {
 	m_particleBufferOld.bindBase(GL_SHADER_STORAGE_BUFFER, 1);
 
 	m_outputImage.allocate(ofGetWidth(), ofGetHeight(), OF_IMAGE_COLOR_ALPHA);
+	m_plane.mapTexCoordsFromTexture(m_outputImage.getTexture());
 }
 
 //--------------------------------------------------------------
@@ -76,13 +76,18 @@ void ofApp::update() {
 	m_fps = ofGetFrameRate();
 	if (m_isPlaying)
 	{
-		m_imageDir.getImageTexture().bind(0);
-		m_outputImage.getTexture().bind(1);
+		//m_imageDir.getImageTexture().bind(0);
+		//m_outputImage.getTexture().bind(1);
 
 		m_compute.begin();
 		m_compute.setUniforms(m_shaderUniforms);
 		m_compute.setUniform1f("timeLastFrame", ofGetLastFrameTime());
 		m_compute.setUniform1f("elapsedTime", ofGetElapsedTimef());
+		m_imageDir.getImageTexture().bindAsImage(0, GL_READ_ONLY);
+		m_outputImage.getTexture().bindAsImage(1, GL_WRITE_ONLY);
+
+		//m_compute.setUniformTexture(string("inputImage"), m_imageDir.getImage().getTextureReference(), 0);
+
 		float size = 4;
 		m_attractor1.set(ofMap(ofNoise(ofGetElapsedTimef()*0.3), 0, 1, -ofGetWidth()*size, ofGetWidth()*size),
 			ofMap(ofNoise(ofGetElapsedTimef()*0.3 + 0.2), 0, 1, -ofGetHeight()*size, ofGetHeight()*size),
@@ -103,10 +108,10 @@ void ofApp::update() {
 		// note how we add 1024 and subtract one, this is a fast way to do the equivalent
 		// of std::ceil() in the float domain, i.e. to round up, so that we're also issueing
 		// a work group should the total size of particles be < 1024
-		m_compute.dispatchCompute((m_particles.size() + 1024 - 1) / 1024, 1, 1);
+		m_compute.dispatchCompute(ofGetWidth()/10, ofGetHeight()/10, 1);
 		m_compute.end();
-		m_imageDir.getImageTexture().unbind(0);
-		m_outputImage.getTexture().unbind(1);
+		//m_imageDir.getImageTexture().unbind(0);
+		//m_outputImage.getTexture().unbind(1);
 		m_particleBuffer.copyTo(m_particleBufferOld);
 	}
 
@@ -116,16 +121,22 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 
+	//ofBackground(40,40,40);
+
 	// draw selected image
 	//m_imageDir.getImageTexture().bind();
-	//m_shader.begin();
-	//m_shader.setUniform1f("uTime", ofGetElapsedTimef());
-	//ofPushMatrix();
-	//ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2);
-	//m_plane.draw();
-	//ofPopMatrix();
-	//m_shader.end();
+	m_outputImage.getTexture().bind();
+	m_shader.begin();
+	m_shader.setUniform1f("uTime", ofGetElapsedTimef());
+	ofPushMatrix();
+	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2);
+	m_plane.draw();
+	ofPopMatrix();
+	m_shader.end();
 	//m_imageDir.getImageTexture().unbind();
+	m_outputImage.getTexture().unbind();
+
+
 
 
 	// draw sim particles
@@ -196,7 +207,7 @@ void ofApp::pauseAndPlayChanged()
 
 void ofApp::resetSim()
 {
-	m_particles.resize(1024 * 8);
+	m_particles.resize(32*32);
 	int i = 0;
 	for (auto & p : m_particles) {
 		p.pos.x = ofRandom(-ofGetWidth()*0.5, ofGetWidth()*0.5);
@@ -211,8 +222,7 @@ void ofApp::resetSim()
 
 	m_vbo.setVertexBuffer(m_particleBuffer, 4, sizeof(Particle));
 	m_vbo.setColorBuffer(m_particleBuffer, sizeof(Particle), sizeof(ofVec4f) * 2);
-	m_vbo.disableColors();
-	m_dirAsColor = false;
+	m_dirAsColor = true;
 
 	ofBackground(0);
 	ofEnableBlendMode(OF_BLENDMODE_ADD);

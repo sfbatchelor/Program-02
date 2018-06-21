@@ -61,6 +61,7 @@ public:
 	ofShader m_shader;
 	ofShader m_compute;
 	ofImage m_outputImage;
+	ofImage m_inputImage;
 	vector<Particle> m_particles;
 	ofBufferObject m_particleBuffer, m_particleBufferOld;
 	GLuint m_vaoID;
