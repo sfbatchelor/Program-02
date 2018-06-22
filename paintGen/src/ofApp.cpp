@@ -5,14 +5,14 @@ void ofApp::setup() {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	ofSetVerticalSync(true);
 
-	m_imageDir.setDirectory("");
+	//m_imageDir.setDirectory("");
 	m_shader.load("vert.glsl", "frag.glsl");
 	
 	m_gui.setup("INFO"); 
 	m_gui.add(m_screenSize.set("Screen Size", ""));
 	m_gui.add(m_currentImageLabel.set("Image:", ""));
 	m_gui.add(m_currentShaderLabel.set("Shader", ""));
-	m_currentImageLabel = m_imageDir.getImageName();
+	//m_currentImageLabel = m_imageDir.getImageName();
 
 	m_shaderUniforms.setName("shader params");
 	m_shaderUniforms.add(m_attractionCoeff.set("attraction", 0.18, 0, 1));
@@ -44,7 +44,7 @@ void ofApp::setup() {
 	m_compute.setupShaderFromFile(GL_COMPUTE_SHADER, "compute1.glsl");
 	m_compute.linkProgram();
 	m_cam.setFarClip(ofGetWidth() * 10);
-	m_particles.resize(32 * 32);
+	m_particles.resize(ofGetWidth() * ofGetHeight());
 	int i = 0;
 	for (auto & p : m_particles) {
 		p.pos.x = ofRandom(-ofGetWidth()*0.5, ofGetWidth()*0.5);
@@ -68,6 +68,13 @@ void ofApp::setup() {
 
 	m_outputImage.allocate(ofGetWidth(), ofGetHeight(), OF_IMAGE_COLOR_ALPHA);
 	m_plane.mapTexCoordsFromTexture(m_outputImage.getTexture());
+
+
+	auto files = ofDirectory("").getFiles();
+	//m_inputImage.allocate(ofGetWidth(), ofGetHeight(), OF_IMAGE_COLOR);
+	m_inputImage.load(files[0].getFileName());
+	auto format = m_inputImage.getPixels().getPixelFormat();
+
 }
 
 //--------------------------------------------------------------
@@ -83,7 +90,8 @@ void ofApp::update() {
 		m_compute.setUniforms(m_shaderUniforms);
 		m_compute.setUniform1f("timeLastFrame", ofGetLastFrameTime());
 		m_compute.setUniform1f("elapsedTime", ofGetElapsedTimef());
-		m_imageDir.getImageTexture().bindAsImage(0, GL_READ_ONLY);
+		m_inputImage.getTexture().bindAsImage(0, GL_READ_WRITE);
+		m_inputImage.getTexture().bind(0);
 		m_outputImage.getTexture().bindAsImage(1, GL_WRITE_ONLY);
 
 		//m_compute.setUniformTexture(string("inputImage"), m_imageDir.getImage().getTextureReference(), 0);
@@ -110,6 +118,7 @@ void ofApp::update() {
 		// a work group should the total size of particles be < 1024
 		m_compute.dispatchCompute(ofGetWidth()/10, ofGetHeight()/10, 1);
 		m_compute.end();
+		m_inputImage.getTexture().bind(0);
 		//m_imageDir.getImageTexture().unbind(0);
 		//m_outputImage.getTexture().unbind(1);
 		m_particleBuffer.copyTo(m_particleBufferOld);
@@ -137,10 +146,7 @@ void ofApp::draw() {
 	m_outputImage.getTexture().unbind();
 
 
-
-
 	// draw sim particles
-
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	m_cam.begin();
 	ofSetColor(ofColor::red);
@@ -169,6 +175,7 @@ void ofApp::draw() {
 
 //--------------------------------------------------------------
 void ofApp::exit() {
+	m_imageDir.stop();
 }
 
 //--------------------------------------------------------------
@@ -207,7 +214,7 @@ void ofApp::pauseAndPlayChanged()
 
 void ofApp::resetSim()
 {
-	m_particles.resize(32*32);
+	m_particles.resize(ofGetWidth() * ofGetHeight());
 	int i = 0;
 	for (auto & p : m_particles) {
 		p.pos.x = ofRandom(-ofGetWidth()*0.5, ofGetWidth()*0.5);

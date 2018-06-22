@@ -20,6 +20,8 @@ public:
 	ofImage& getImage();
 	ofTexture& getImageTexture();
 	string getImageName() const;
+	void stop();
+	void start();
 
 private:
 

@@ -13,7 +13,17 @@ ImageDirViewer::ImageDirViewer(string dir)
 
 ImageDirViewer::~ImageDirViewer()
 {
+}
+
+void ImageDirViewer::stop()
+{
 	m_imageLoader.stopThread();
+
+}
+
+void ImageDirViewer::start()
+{
+	m_imageLoader.startThread();
 }
 
 void ImageDirViewer::setDirectory(string dir)
