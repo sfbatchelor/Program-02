@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "utils\ofFileUtils.h"
+#include "ShaderWatcher.h"
 
 #include "imageDirViewer.h"
 
@@ -33,7 +34,8 @@ public:
 	ofParameter<string> m_screenSize;
 	ofParameter<string> m_currentShaderLabel;
 	bool m_hideGUI;
+	vector<ofFile> m_files;
 
-	ofShader m_shader;
+	ShaderWatcher m_shader;
 	ofPlanePrimitive m_plane;
 };

@@ -1,4 +1,5 @@
 #include "ofApp.h"
+#include <boost/lexical_cast.hpp>
 
 //--------------------------------------------------------------
 void ofApp::setup() {
@@ -20,25 +21,27 @@ void ofApp::setup() {
 
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
 	m_plane.mapTexCoordsFromTexture(m_imageDir.getImageTexture());
+	m_files = ofDirectory("").getFiles();
+
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
-
+	m_shader.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
 
 	m_imageDir.getImageTexture().bind();
-	m_shader.begin();
-	m_shader.setUniform1f("uTime", ofGetElapsedTimef());
+	m_shader.getShader().begin();
+	m_shader.getShader().setUniform1f("uTime", ofGetElapsedTimef());
 
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2);
 	m_plane.draw();
 	ofPopMatrix();
-	m_shader.end();
+	m_shader.getShader().end();
 	m_imageDir.getImageTexture().unbind();
 
 	if (!m_hideGUI)

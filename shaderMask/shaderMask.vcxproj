@@ -194,6 +194,7 @@ C:\_dev\openFrameworks\addons\ofxThreadedImageLoader\src;%(AdditionalIncludeDire
     <ClCompile Include="src\imageDirViewer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
+    <ClCompile Include="src\ShaderWatcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\addons\ofxGui\src\ofxBaseGui.h" />
@@ -208,8 +209,10 @@ C:\_dev\openFrameworks\addons\ofxThreadedImageLoader\src;%(AdditionalIncludeDire
     <ClInclude Include="..\..\..\..\addons\ofxGui\src\ofxSliderGroup.h" />
     <ClInclude Include="..\..\..\..\addons\ofxGui\src\ofxToggle.h" />
     <ClInclude Include="..\..\..\..\addons\ofxThreadedImageLoader\src\ofxThreadedImageLoader.h" />
+    <ClInclude Include="src\filewatcher.h" />
     <ClInclude Include="src\imageDirViewer.h" />
     <ClInclude Include="src\ofApp.h" />
+    <ClInclude Include="src\ShaderWatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

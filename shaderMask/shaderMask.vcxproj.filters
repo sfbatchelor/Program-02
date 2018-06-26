@@ -41,6 +41,7 @@
       <Filter>addons\ofxThreadedImageLoader\src</Filter>
     </ClCompile>
     <ClCompile Include="src\imageDirViewer.cpp" />
+    <ClCompile Include="src\ShaderWatcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -103,6 +104,8 @@
       <Filter>addons\ofxThreadedImageLoader\src</Filter>
     </ClInclude>
     <ClInclude Include="src\imageDirViewer.h" />
+    <ClInclude Include="src\filewatcher.h" />
+    <ClInclude Include="src\ShaderWatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
