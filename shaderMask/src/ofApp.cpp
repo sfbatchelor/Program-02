@@ -22,6 +22,7 @@ void ofApp::setup() {
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
 	m_plane.mapTexCoordsFromTexture(m_imageDir.getImageTexture());
 	m_files = ofDirectory("").getFiles();
+	ofSetBackgroundColor(0.2,0.2,0.2);
 
 }
 
