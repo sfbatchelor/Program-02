@@ -10,6 +10,8 @@ public:
 	ImageDirViewer(string dir);
 	~ImageDirViewer();
 
+	void exit();
+
 	void setDirectory(string dir);
 	string getDirectory() const;
 	size_t getNumImages() const;

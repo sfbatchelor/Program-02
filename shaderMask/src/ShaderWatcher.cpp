@@ -6,8 +6,6 @@ ShaderWatcher::ShaderWatcher()
 
 ShaderWatcher::~ShaderWatcher()
 {
-	m_vertex.m_fileWatcher.stopThread();
-	m_fragment.m_fileWatcher.stopThread();
 }
 
 bool ShaderWatcher::load(const std::filesystem::path & vertName, const std::filesystem::path & fragName)
@@ -50,6 +48,12 @@ void  ShaderWatcher::update()
 
 }
 
+void ShaderWatcher::exit()
+{
+	m_vertex.m_fileWatcher.waitForThread(true);
+	m_fragment.m_fileWatcher.waitForThread(true);
+}
+
 const ofShader& ShaderWatcher::getShader() const
 {
 	ofScopedLock(m_mutex);
@@ -65,6 +69,7 @@ void ShaderWatcher::onFileWasModified()
 
 ComputeWatcher::ComputeWatcher()
 {
+
 }
 
 ComputeWatcher::~ComputeWatcher()
@@ -95,6 +100,11 @@ void ComputeWatcher::update()
 		loadCompute(m_compute.m_filePath);
 		m_needsUpdating = false;
 	}
+}
+
+void ComputeWatcher::exit()
+{
+	m_compute.m_fileWatcher.waitForThread(true);
 }
 
 const ofShader& ComputeWatcher::getShader() const

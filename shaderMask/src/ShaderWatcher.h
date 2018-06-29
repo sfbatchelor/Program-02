@@ -19,6 +19,7 @@ public:
 	~ShaderWatcher();
 	bool load(const std::filesystem::path& vertName, const std::filesystem::path& fragName);
 	void update();
+	void exit();
 	const ofShader& getShader() const;
 
 private:
@@ -43,6 +44,7 @@ public:
 	~ComputeWatcher();
 	bool loadCompute(const std::filesystem::path& shaderName);
 	void update();
+	void exit();
 	const ofShader& getShader() const;
 
 private:

@@ -16,6 +16,11 @@ ImageDirViewer::~ImageDirViewer()
 	m_imageLoader.stopThread();
 }
 
+void ImageDirViewer::exit()
+{
+	m_imageLoader.waitForThread(true);
+}
+
 void ImageDirViewer::setDirectory(string dir)
 {
 	m_dataDir = ofDirectory(dir);
