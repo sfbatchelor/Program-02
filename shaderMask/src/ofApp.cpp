@@ -6,13 +6,12 @@ void ofApp::setup() {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	ofSetVerticalSync(true);
 
-
+	m_snapshot = false;
 	m_imageDir.setDirectory("");
 
 	m_shader.load("vert.glsl", "frag.glsl");
 
-	// we add this listener before setting up so the initial circle resolution is correct
-	m_gui.setup("INFO"); // most of the time you don't need a name but don't forget to call setup
+	m_gui.setup("INFO"); 
 	m_gui.add(m_screenSize.set("Screen Size", ""));
 	m_gui.add(m_currentImageLabel.set("Image:", ""));
 	m_gui.add(m_currentShaderLabel.set("Shader", ""));
@@ -24,6 +23,8 @@ void ofApp::setup() {
 	m_files = ofDirectory("").getFiles();
 	ofSetBackgroundColor(0.2,0.2,0.2);
 
+	m_cam.setVFlip(true); //flip for upside down image
+
 }
 
 //--------------------------------------------------------------
@@ -34,20 +35,74 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 
-	m_imageDir.getImageTexture().bind();
-	m_shader.getShader().begin();
-	m_shader.getShader().setUniform1f("uTime", ofGetElapsedTimef());
+	/// WORLD
+	{
+		m_cam.begin();
+		m_imageDir.getImageTexture().bind();
+		m_shader.getShader().begin();
+		m_shader.getShader().setUniform1f("uTime", ofGetElapsedTimef());
+		ofPushMatrix();
+		m_plane.draw();
+		ofPopMatrix();
+		m_shader.getShader().end();
+		m_imageDir.getImageTexture().unbind();
 
-	ofPushMatrix();
-	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2);
-	m_plane.draw();
-	ofPopMatrix();
-	m_shader.getShader().end();
-	m_imageDir.getImageTexture().unbind();
+		/// SCREEN GRAB
+		if (m_snapshot == true) {
+			m_screenGrab.grabScreen(0, 0, ofGetWidth(), ofGetHeight());
+			string fileName = "snapshot_" + ofGetTimestampString() + ".png";
+			m_screenGrab.save(fileName);
+			m_screenGrabFilename = "saved " + fileName;
+			m_snapshot = false;
+		}
 
-	if (!m_hideGUI)
+		if (!m_helpText)
+			ofDrawGrid(5000, 5, true, true, true, true);
+		m_cam.end();
+	}
+
+
+	/// GUI
+	if (!m_helpText)
+	{
+
 		m_gui.draw();
+		stringstream ss;
+		ss << "FPS: " << ofToString(ofGetFrameRate(), 0) << endl << endl;
+		ss << "MODE: " << (m_cam.getOrtho() ? "ORTHO" : "PERSPECTIVE") << endl;
+		ss << "MOUSE INPUT ENABLED: " << (m_cam.getMouseInputEnabled() ? "TRUE" : "FALSE") << endl;
+		ss << "INERTIA ENABLED: " << (m_cam.getInertiaEnabled() ? "TRUE" : "FALSE") << endl;
+		ss << "ROTATION RELATIVE Y AXIS: " << (m_cam.getRelativeYAxis() ? "TRUE" : "FALSE") << endl;
+		if (m_cam.getOrtho()) {
+			ss << "    Notice that in ortho mode zoom will be centered at the mouse position." << endl;
+		}
+		ofDrawBitmapString(ss.str().c_str(), 20, 100);
+		// also interaction area
+		drawInteractionArea();
 
+	}
+
+
+
+}
+//--------------------------------------------------------------
+void ofApp::drawInteractionArea()
+{
+	ofRectangle vp = ofGetCurrentViewport();
+	float r = std::min<float>(vp.width, vp.height) * 0.5f;
+	float x = vp.width * 0.5f;
+	float y = vp.height * 0.5f;
+
+	ofPushStyle();
+	ofSetLineWidth(3);
+	ofSetColor(255, 255, 0);
+	ofNoFill();
+	glDepthMask(false);
+	ofSetCircleResolution(64);
+
+	ofDrawCircle(x, y, r);
+	glDepthMask(true);
+	ofPopStyle();
 }
 
 //--------------------------------------------------------------
@@ -59,14 +114,46 @@ void ofApp::exit() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
 
-	if (key == 'a' || key == 's')
+	switch (key) {
+
+	case 'a': 
+	case 's':
 		m_imageDir.prevImage();
-	else if (key == 'd' || key == 'w')
+		break;
+	case 'd':
+	case 'w':
 		m_imageDir.nextImage();
-	else if (key == 'h')
-		m_hideGUI = !m_hideGUI;
+		break;
+	case 'x':
+		m_snapshot = true;
+		break;
+	case ' ':
+		m_cam.getOrtho() ? m_cam.disableOrtho() : m_cam.enableOrtho();
+		break;
+	case 'C':
+	case 'c':
+		m_cam.getMouseInputEnabled() ? m_cam.disableMouseInput() : m_cam.enableMouseInput();
+		break;
+	case 'F':
+	case 'f':
+		ofToggleFullscreen();
+		break;
+	case 'H':
+	case 'h':
+		m_helpText ^= true;
+		break;
+	case 'I':
+	case 'i':
+		m_cam.getInertiaEnabled() ? m_cam.disableInertia() : m_cam.enableInertia();
+		break;
+	case 'Y':
+	case 'y':
+		m_cam.setRelativeYAxis(!m_cam.getRelativeYAxis());
+		break;
+	}
 
 	m_currentImageLabel = m_imageDir.getImageName();
+
 }
 
 //--------------------------------------------------------------
@@ -114,6 +201,8 @@ void ofApp::windowResized(int w, int h) {
 void ofApp::gotMessage(ofMessage msg) {
 
 }
+
+
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo) {

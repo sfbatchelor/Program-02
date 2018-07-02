@@ -50,8 +50,8 @@ void  ShaderWatcher::update()
 
 void ShaderWatcher::exit()
 {
-	m_vertex.m_fileWatcher.waitForThread(true);
-	m_fragment.m_fileWatcher.waitForThread(true);
+	m_vertex.m_fileWatcher.waitForThread(true, 500);
+	m_fragment.m_fileWatcher.waitForThread(true, 500);
 }
 
 const ofShader& ShaderWatcher::getShader() const

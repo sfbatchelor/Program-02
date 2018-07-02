@@ -18,7 +18,7 @@ ImageDirViewer::~ImageDirViewer()
 
 void ImageDirViewer::exit()
 {
-	m_imageLoader.waitForThread(true);
+	m_imageLoader.waitForThread(true, 500);
 }
 
 void ImageDirViewer::setDirectory(string dir)

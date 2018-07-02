@@ -1,4 +1,5 @@
 *.jpg
+*.png
 #Ignore files built by Visual Studio
 *.user
 *.aps

@@ -13,6 +13,7 @@ public:
 	void setup();
 	void update();
 	void draw();
+	void drawInteractionArea();
 	void exit();
 
 	void keyPressed(int key);
@@ -27,7 +28,14 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
+
 	ImageDirViewer m_imageDir;
+	ofImage m_screenGrab;
+	string m_screenGrabFilename;
+	bool m_snapshot;
+
+	ofEasyCam m_cam;
+	bool m_helpText;
 
 	ofxPanel m_gui;
 	ofParameter<string> m_currentImageLabel;
