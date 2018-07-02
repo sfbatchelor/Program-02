@@ -84,7 +84,8 @@ vec4 circularMasks(vec2 uv, vec4 colour)
 	val = (angle*100);
 
 	// texture lookup based on angle 
-	vec2 lookup = vec2(Texcoord);
+	vec2 patternOffset = vec2(800.5);
+	vec2 lookup = vec2(Texcoord-patternOffset);
 	vec4 texCol = texture(tex0, (lookup) );
 	texCol = pow(texCol,vec4(power));
 	//texCol = vec4(texCol.z);
@@ -116,12 +117,13 @@ vec4 circularMasks(vec2 uv, vec4 colour)
 	val = (angle*10);
 
 	// texture lookup based on angle 
-	lookup = vec2(Texcoord*n21(id));
+	patternOffset = vec2(1000.5);
+	lookup = vec2(Texcoord - patternOffset *n21(id) );
 	texCol = texture(tex0, (lookup) );
 	texCol = pow(texCol,vec4(power));
 	//texCol = vec4(texCol.z);
 	masks=  texCol.z;
-	cutoff = 0.76;
+	cutoff = 0.725;
 	masks  = smoothstep(cutoff - 0.05, cutoff +0.05,  masks * cMask);
 	colour = mix(colour, texCol, masks);
 
