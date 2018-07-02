@@ -66,45 +66,32 @@ vec3 layer(vec2 st)
     r.x = fbm( st + 7.0*q + vec2(10.7,9.2)+ 1.15*uTime);
     r.y = fbm( st + 10.0*q + vec2(98.3,92.8)+ 2.126*uTime);
     float f = fbm(st+r);
-    color = mix(vec3(0.201961,0.619608,0.266667),
-                vec3(0.166667,0.666667,0.698039),
+    color = mix(vec3(0.701961,0.619608,0.266667),
+                vec3(0.966667,0.266667,0.398039),
                 clamp((f*f)*4.0,0.0,1.0));
     color = mix(color,
-                vec3(0.876,0.6,0.644706),
+                vec3(0.876,0.3,0.164706),
                 clamp(length(q),0.0,1.0));
     color = mix(color,
-                vec3(0.166667,.3,.2),
+                vec3(0.666667,.4,1),
                 clamp(length(r.x),0.0,1.0));
 	color = (f*f*f+.6*f*f+.5*f)*color;
 	return color;
 }
 
 void main() {
-    vec2 st = (Texcoord.xy-1*res.xy)/res.y;
-	st *= .3;
+    vec2 st = (Texcoord.xy-.5*res.xy)/res.y;
     vec3 color= vec3(0);
 
 	for(float i=0; i<1.; i+= 1./4.)
 	{
-		float z = fract(i+uTime*.33);
+		float z = fract(i+uTime*.1);
 		float size = mix(5., .1, z);
 		float fade = smoothstep(0., .5, z)*smoothstep(1., .8,z);
-		color += layer(st*size+i)*fade*.6;
-		if(i < .6)
-		{
-
-		vec2 lookup = Texcoord/1.35;
-		lookup -= vec2(100.9, -90);
-		vec4 texCol = texture(tex0, lookup);
-		texCol = pow(texCol,vec4(1.4));
-		float maskCoeff = texCol.z;
-		float cutoff = 0.72;
-		maskCoeff = smoothstep(cutoff - 0.05, cutoff +0.05, maskCoeff);
-		color = mix(color , texCol.xyz* (.3-color*2.8), maskCoeff);
-
-		}
+		color += layer(st*size+i)*fade*.5;
 	}
+
+
+
     outputColor = vec4(color,1.);
-
-
 }
