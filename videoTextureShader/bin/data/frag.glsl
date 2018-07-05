@@ -177,5 +177,6 @@ void main()
 
 
 	outputColor  = col;
+	outputColor  = texture(tex0, Texcoord);
 
 }

@@ -2,28 +2,51 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+
+	// hud and settings
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	ofSetVerticalSync(true);
-
 	m_snapshot = false;
-
-	m_shader.load("vert.glsl", "frag.glsl");
-
 	m_gui.setup("INFO"); 
 	m_gui.add(m_screenSize.set("Screen Size", ""));
 	m_hideOverlays = false;
 
+	// webcam 
+	m_camWidth = ofGetWidth();  // try to grab at this size.
+    m_camHeight = ofGetHeight();
+    vector<ofVideoDevice> devices = m_videoGrabber.listDevices();
+    for(size_t i = 0; i < devices.size(); i++){
+        if(devices[i].bAvailable){
+            //log the device
+            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
+        }else{
+            //log the device and note it as unavailable
+            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
+        }
+    }
+    m_videoGrabber.setDeviceID(0);
+    m_videoGrabber.setDesiredFrameRate(60);
+    m_videoGrabber.initGrabber(m_camWidth, m_camHeight);
+
+
+
+
+
+	// geom & shader
+	m_shader.load("vert.glsl", "frag.glsl");
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
-	m_plane.mapTexCoords(0, 0, ofGetWidth(), ofGetHeight());
+	m_plane.mapTexCoordsFromTexture(m_videoGrabber.getTexture());
 	ofSetBackgroundColor(0.2,0.2,0.2);
 
-	m_cam.setVFlip(true); //flip for upside down image
+
+
 
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	m_shader.update();
+	m_videoGrabber.update();
 }
 
 //--------------------------------------------------------------
@@ -32,10 +55,12 @@ void ofApp::draw(){
 	{
 		m_cam.begin();
 		m_shader.getShader().begin();
+		m_videoGrabber.getTexture().bind();
 		m_shader.getShader().setUniform1f("uTime", ofGetElapsedTimef());
 		ofPushMatrix();
 		m_plane.draw();
 		ofPopMatrix();
+		m_videoGrabber.getTexture().unbind();
 		m_shader.getShader().end();
 
 		/// SCREEN GRAB

@@ -44,4 +44,10 @@ private:
 	ofPlanePrimitive m_plane;
 
 
+	// webcam vid texture
+	ofVideoGrabber m_videoGrabber;
+	int m_camWidth;
+	int m_camHeight;
+
+
 };
