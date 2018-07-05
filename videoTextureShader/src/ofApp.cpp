@@ -36,7 +36,6 @@ void ofApp::setup(){
 	m_shader.load("vert.glsl", "frag.glsl");
 	m_plane.set(ofGetWidth(), ofGetHeight(), 10, 10);
 	m_plane.mapTexCoordsFromTexture(m_videoGrabber.getTexture());
-	ofSetBackgroundColor(0.2,0.2,0.2);
 
 
 
@@ -45,6 +44,7 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+	ofSetBackgroundColor(0.4,0.4,0.4);
 	m_shader.update();
 	m_videoGrabber.update();
 }
