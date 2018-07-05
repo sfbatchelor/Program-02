@@ -58,20 +58,35 @@ float circle(in vec2 _st, in float _radius, in float c){
                          dot(dist,dist)*2.0);
 }
 
-float vignette(vec2 uv, vec2 dim, vec2 c)
+float vignette(vec2 uv, vec2 dim, vec2 k)
 {
 
 	//dim = clamp(dim, vec2(0), vec2(.5));
 	float topThresh =  .5 + dim.y;
 	float bottomThresh = .5 - dim.y ;
-	float top = smoothstep(  topThresh, topThresh - c.y, uv.y);  
-	float bottom = smoothstep( bottomThresh, bottomThresh + c.y,uv.y);  
-	float cir = circle(uv, dim.x, c.x*3);
+	float top = s(  topThresh, topThresh - k.y, uv.y);  
+	float bottom = s( bottomThresh, bottomThresh + k.y,uv.y);  
+	float cir = circle(uv, dim.x, k.x*3);
 
 	float mask = top * bottom * cir;
 	mask /= pow(mask, .1); // little bit of a pow curve for spice
 	
 	return mask;
+}
+
+
+vec3 warp(vec2 uv, vec3 col, float ty, float k)
+{
+	float ar = uResolution.x/ uResolution.y;
+	vec3 newCol = vec3(0);
+	float lookupY = ty;
+	lookupY -= .25;
+	lookupY *= uResolution.y;
+	vec3 warpPix = texture(tex0, vec2(Texcoord.x, lookupY )).rgb;
+	float fade = s( ty  -k*.9, ty +k , uv.y);
+	newCol = mix(col, warpPix,fade);
+	return newCol;
+
 }
 
 void main()
@@ -85,21 +100,28 @@ void main()
 	vec4 texCol = texture(tex0, Texcoord);
 
 
-	//b&w
-	texCol.rgb = vec3(length(texCol.rgb)/3.);
+
 
 	// vingette
-	float vMask = vignette(uv, vec2(.5,.5), vec2(.8, .5) );
 	//vec3 col = vec3(1 - vMask);
-	vec3 col = vMask*texCol.rgb;
 
+	vec3 col = warp(uv, texCol.rgb, .6, .1);
+	float vMask = vignette(uv, vec2(.5,.6), vec2(.9, .5) );
+	col = vMask*col;
+
+
+
+	//b&w
+	col = vec3(length(col.rgb)/3.);
 
 	//noise
-	uv *= 300;
+	uv *= 700;
 	vec2 id = floor(uv);
-	float rand = n21(id+uTime*.000002);
-	float n = noise(vec2(id.x * rand, id.y+uTime*2));
+	float rand = n21(id+uTime*.00002);
+	float n = noise(vec2(id.x * rand, id.y+uTime*9));
 	col *= vec3(n);
+
+
 
 	outputColor  = vec4(col, 1.0);
 
