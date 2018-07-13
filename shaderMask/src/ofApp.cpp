@@ -38,6 +38,7 @@ void ofApp::draw() {
 	/// WORLD
 	{
 		m_cam.begin();
+		m_imageDir.getImageTexture().setTextureWrap(GL_REPEAT, GL_REPEAT);
 		m_imageDir.getImageTexture().bind();
 		m_shader.getShader().begin();
 		m_shader.getShader().setUniform1f("uTime", ofGetElapsedTimef());

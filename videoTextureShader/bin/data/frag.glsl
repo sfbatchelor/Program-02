@@ -87,8 +87,9 @@ vec3 warp(vec2 uv, vec3 col, float ty, float k)
 	vec3 newCol = vec3(0);
 	float lookupY = ty;
 	lookupY *= uResolution.y; //put them back into pixels
-	vec3 warpPix = texture(tex0, vec2(Texcoord.x, lookupY )).rgb;
 	float fade = s( lookupY  +k*.2, lookupY -k , Texcoord.y);
+
+	vec3 warpPix = texture(tex0, vec2(Texcoord.x, lookupY  )).rgb;
 	newCol = mix(col, warpPix,fade);
 	return newCol;
 
@@ -110,7 +111,7 @@ void main()
 	// vingette
 	//vec3 col = vec3(1 - vMask);
 
-	vec3 col = warp(uv, texCol.rgb, .5, .0071);
+	vec3 col = warp(uv, texCol.rgb, .5, .091);
 	float vMask = vignette(uv, vec2(.5,.5), vec2(.9, .5) );
 	col = vMask*col;
 
@@ -120,12 +121,13 @@ void main()
 	col = vec3(length(col.rgb)/3.);
 
 	//noise
-	uv *= 500;
+	uv *= 600;
 	vec2 id = floor(uv);
 	float rand = n21(id+uTime*.00002);
 	float n = noise(vec2(id.x * rand, id.y+uTime*9));
 	col *= vec3(n);
 
+	col = pow(col,vec3(.6));
 
 
 	outputColor  = vec4(col, 1.0);

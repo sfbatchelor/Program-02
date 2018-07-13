@@ -7,11 +7,24 @@ in vec2 Texcoord;
 
 out vec4 outputColor;
 
-uniform float uTime = 0.5;
+uniform float uTime = 0.8;
 
 
 #define t uTime
 #define res vec2 (1560, 2130)
+
+#define grey vec4(63./255., 63./255., 61./255., 1.)
+#define black vec4(3./255., 3./255., 3./255., 1.)
+#define white vec4(244./255., 244./255., 240./255., 1.)
+#define lightGrey vec4(141./255., 140./255., 132./255., 1.)
+#define lightBlack vec4(24./255., 24./255., 24./255., 1.)
+#define PI 3.14159265359
+const float EPSILON = 0.0001;
+
+struct ray
+{
+    vec3 o,  d;
+};
 
 
 float random (in vec2 _st) {
@@ -40,18 +53,35 @@ float noise (in vec2 _st) {
 #define NUM_OCTAVES 5
 
 float fbm ( in vec2 _st) {
-    float v = 0.0;
-    float a = 0.5;
+    float v = 1.0;
+    float a = 0.25;
     vec2 shift = vec2(100.0);
     // Rotate to reduce axial bias
-    mat2 rot = mat2(cos(0.5), sin(0.5),
-                    -sin(0.5), cos(0.50));
+    mat2 rot = mat2(cos(0.01), sin(0.01),
+                    -sin(0.01), cos(0.010));
     for (int i = 0; i < NUM_OCTAVES; ++i) {
         v += a * noise(_st);
-        _st = rot * _st * 2.0 + shift;
-        a *= 0.5;
+        _st = rot * _st * .25 + shift;
+        a *=  7.5;
     }
     return v;
+}
+
+
+ray getRay(vec2 uv, vec3 camPos, vec3 lookAt, float zoom)
+{
+
+
+    ray a;
+    a.o = camPos;
+    vec3 forward = normalize(lookAt -camPos);
+    vec3 right = cross(vec3(0,1,0),forward);
+    vec3 up = cross(forward, right);
+    vec3 c = a.o +forward*zoom;
+    vec3 i = c + uv.x*right + uv.y*up;
+    a.d = normalize(i-a.o);
+    return a ;
+
 }
 
 
@@ -79,32 +109,119 @@ vec3 layer(vec2 st)
 	return color;
 }
 
+float sdSphere(vec3 p, vec3 pos, float radius)
+{
+    return length(p - pos) - radius;
+}
+
+float distMap(vec3 p)
+{
+
+	float d = sdSphere(p, vec3(0.0), 80.);
+
+	return d;
+}
+
+
+// returns the normal direction of a point in the scene by taking samples around the point of size EPSILON.
+vec3 worldNormal(vec3 p) {
+    return normalize(vec3(
+        distMap(vec3(p.x + EPSILON, p.y, p.z)) -  distMap(vec3(p.x - EPSILON, p.y, p.z)),
+        distMap(vec3(p.x, p.y + EPSILON, p.z)) -  distMap(vec3(p.x, p.y - EPSILON, p.z)),
+        distMap(vec3(p.x, p.y, p.z  + EPSILON)) - distMap(vec3(p.x, p.y, p.z - EPSILON))
+    ));
+}
+
+// returns distance from ro (ray-origin) in the rd (ray-direction) direction. Returns -1 if no hit.
+float worldIntersect(vec3 ro, vec3 rd )
+{
+    for(float t=0.0; t<50000.0; )
+    {
+        float h = distMap(ro + rd*vec3(t));
+        if( h<0.0001 )
+            return t;
+        t += h.x;
+    }
+    return float(-1.0);
+}
+
+int worldSteps(vec3 ro, vec3 rd)
+{
+	int steps = 0;
+    for(float t=0.0; t<50000.0; )
+    {
+        float h = distMap(ro + rd*vec3(t));
+        if( h<0.0001 )
+            break;
+        t += h.x;
+		steps += 1;
+    }
+    return steps;
+}
+
+
+
+vec4 backgroundNoiseLayer(vec2 st)
+{
+
+	vec2 lookup = Texcoord;
+	vec2 p = vec2(0);
+	p.x = fbm(lookup+uTime*140.001);
+	p.y = fbm(lookup+uTime*300.2334);
+	vec2 q =vec2(0);
+	q.x = fbm(lookup + p*.5 + 0.15-uTime * 27);
+	q.y = fbm(lookup + p*.5 + 10.15-uTime * 97);
+	vec2 m =vec2(0);
+	m.x = fbm(lookup + q*.5 + 230.15-uTime * 927);
+	m.y = fbm(lookup + q*.5 + 10.15-uTime * 297);
+	lookup = m;
+	vec4 texCol = texture(tex0, lookup);
+
+	vec4 col = vec4(0);
+	col = pow(texCol,vec4(1.1));
+	col = mix(lightBlack, black, length(col.b));
+	return col;
+
+}
+
 void main() {
+
     vec2 st = (Texcoord.xy-1*res.xy)/res.y;
-	st *= .3;
-    vec3 color= vec3(0);
+    vec3 colour= vec3(0);
+	colour = backgroundNoiseLayer(Texcoord).rgb;
 
-	for(float i=0; i<1.; i+= 1./4.)
+   float zoom = 4.75;
+   vec3 camPos = vec3( -22.5, -96,-606.659);
+   vec3 lookAt = camPos;
+   lookAt.z += 1.;
+   ray r  = getRay(st, camPos, lookAt, zoom);
+	for(int i = 0; i < 10; i++)
 	{
-		float z = fract(i+uTime*.33);
-		float size = mix(5., .1, z);
-		float fade = smoothstep(0., .5, z)*smoothstep(1., .8,z);
-		color += layer(st*size+i)*fade*.6;
-		if(i < .6)
-		{
 
-		vec2 lookup = Texcoord/1.35;
-		lookup -= vec2(100.9, -90);
-		vec4 texCol = texture(tex0, lookup);
-		texCol = pow(texCol,vec4(1.4));
-		float maskCoeff = texCol.z;
-		float cutoff = 0.72;
-		maskCoeff = smoothstep(cutoff - 0.05, cutoff +0.05, maskCoeff);
-		color = mix(color , texCol.xyz* (.3-color*2.8), maskCoeff);
+   			float intersect = worldIntersect( r.o, r.d);
+			if (intersect != -1.) 	//if hit
+			{
+				//colour += worldNormal(r.o + r.d*vec3(intersect));
+				vec2 lookup = Texcoord;
+				lookup *= .7;
+				lookup.x -= 200;
+				vec4 texCol = texture(tex0, lookup );
+				float maskCoeff =  texCol.z;
+				float cutoff = 0.88;
+				maskCoeff = smoothstep(cutoff - 0.1, cutoff +0.1, maskCoeff);
+				texCol.rgb = mix(colour, texCol.rgb, maskCoeff);
 
-		}
+				vec3 mask = worldSteps(r.o, r.d)* vec3(.018,0.018,0.018)*noise(vec2(uTime));
+				colour = mix(colour, texCol.rgb, mask);
+
+			}
 	}
-    outputColor = vec4(color,1.);
+
+
+
+
+
+    outputColor = vec4(colour,1.);
 
 
 }
